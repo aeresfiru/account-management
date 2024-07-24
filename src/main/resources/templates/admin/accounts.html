@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account List</title>
+
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<h1>Accounts</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>Account ID</th>
+        <th>Balance</th>
+        <th>Blocked</th>
+        <th>User</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="account : ${accounts}">
+        <td th:text="${account.id}"></td>
+        <td th:text="${account.balance}"></td>
+        <td th:text="${account.isBlocked ? 'Yes' : 'No'}"></td>
+        <td th:text="${account.user.username}"></td>
+        <td>
+            <div th:if="${not #lists.contains(account.user.roles, 'ADMIN')}">
+                <form th:action="@{/admin/block}" method="post">
+                    <input type="hidden" name="accountId" th:value="${account.id}"/>
+                    <button type="submit" th:disabled="${account.isBlocked}">Block</button>
+                </form>
+                <form th:action="@{/admin/unblock}" method="post">
+                    <input type="hidden" name="accountId" th:value="${account.id}"/>
+                    <button type="submit" th:disabled="${!account.isBlocked}">Unblock</button>
+                </form>
+            </div>
+            <div th:if="${#lists.contains(account.user.roles, 'ADMIN')}">
+                <p>Admin account cannot be blocked</p>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="pagination">
+    <ul>
+        <li th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <a th:if="${i != currentPage}" th:href="@{/admin/accounts(page=${i}, size=${pageSize})}"
+               th:text="${i + 1}"></a>
+            <span th:if="${i == currentPage}" class="current" th:text="${i + 1}"></span>
+        </li>
+    </ul>
+</div>
+
+<hr>
+
+<div>
+    <a href="/logout">Logout</a>
+</div>
+
+</body>
+</html>

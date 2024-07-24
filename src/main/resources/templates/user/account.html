@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>User Account</title>
+
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<h1>Your Account</h1>
+<div th:if="${errorMessage}">
+    <p style="color: red;" th:text="${errorMessage}"></p>
+</div>
+<div>
+    <p><strong>Account ID:</strong> <span th:text="${account.id}"></span></p>
+    <p><strong>Balance:</strong> <span th:text="${account.balance}"></span></p>
+    <p><strong>Blocked:</strong> <span th:text="${account.isBlocked ? 'Yes' : 'No'}"></span></p>
+</div>
+
+<div th:if="${!account.isBlocked}">
+    <h2>Deposit Money</h2>
+    <form th:action="@{/user/account/deposit}" method="post">
+        <label for="deposit_amount">Amount:</label>
+        <input type="number" id="deposit_amount" name="amount" step="0.01" required/>
+        <button type="submit">Deposit</button>
+    </form>
+
+    <h2>Withdraw Money</h2>
+    <form th:action="@{/user/account/withdraw}" method="post">
+        <label for="withdraw_amount">Amount:</label>
+        <input type="number" id="withdraw_amount" name="amount" step="0.01" required/>
+        <button type="submit">Withdraw</button>
+    </form>
+</div>
+
+<hr>
+
+<div>
+    <a href="/logout">Logout</a>
+</div>
+
+<div th:if="${account.isBlocked}">
+    <p>Your account is blocked. You cannot perform any operations.</p>
+</div>
+
+</body>
+</html>

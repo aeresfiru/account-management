@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Internal Server Error</title>
+</head>
+<body>
+<h1>500 Internal Server Error</h1>
+<p th:text="${errorMessage}">An unexpected error occurred on the server.</p>
+
+<div sec:authorize="isAuthenticated()">
+    <div sec:authorize="hasRole('ROLE_USER')">
+        <a href="/user/account" class="btn">Home</a>
+    </div>
+    <div sec:authorize="hasRole('ROLE_ADMIN')">
+        <a href="/admin/accounts" class="btn">Admin Home</a>
+    </div>
+</div>
+</body>
+</html>
