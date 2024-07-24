@@ -1,5 +1,5 @@
 services:
-  postgres:
+  account_management_db:
     image: postgres:16
     container_name: postgres
     environment:
@@ -11,7 +11,7 @@ services:
     volumes:
       - account_management:/var/lib/postgresql/data
 
-  app:
+  account_management_app:
     build:
       dockerfile: Dockerfile
       args:

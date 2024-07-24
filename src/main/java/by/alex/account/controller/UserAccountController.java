@@ -2,6 +2,7 @@ package by.alex.account.controller;
 
 import by.alex.account.service.AccountBlockedException;
 import by.alex.account.service.InsufficientFundsException;
+import by.alex.account.service.dto.AccountDTO;
 import by.alex.account.service.impl.AccountServiceImpl;
 import by.alex.account.service.impl.UserServiceImpl;
 import lombok.AllArgsConstructor;
@@ -27,10 +28,8 @@ public class UserAccountController {
 
     @RequestMapping
     public String viewAccount(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        var user = userService.findByUsername(userDetails.getUsername());
-        var account = accountService.findByUserId(user.id());
+        var account = loadUserAccount(userDetails);
         model.addAttribute("account", account);
-        log.info("User {} is viewing account with ID {}", userDetails.getUsername(), account.id());
         return "user/account";
     }
 
@@ -39,16 +38,12 @@ public class UserAccountController {
                           @RequestParam BigDecimal amount,
                           Model model) {
         try {
-            var user = userService.findByUsername(userDetails.getUsername());
-            var account = accountService.findByUserId(user.id());
+            var account = loadUserAccount(userDetails);
             accountService.deposit(account, amount);
-            log.info("User {} deposited {} to account with ID {}", userDetails.getUsername(), amount, account.id());
-        } catch (AccountBlockedException | InsufficientFundsException ex) {
+        } catch (AccountBlockedException | InsufficientFundsException | IllegalArgumentException ex) {
+            var account = loadUserAccount(userDetails);
             model.addAttribute("errorMessage", ex.getMessage());
-            var user = userService.findByUsername(userDetails.getUsername());
-            var account = accountService.findByUserId(user.id());
             model.addAttribute("account", account);
-            log.error("Error during deposit operation for user {}: {}", userDetails.getUsername(), ex.getMessage());
             return "user/account";
         }
         return "redirect:/user/account";
@@ -59,18 +54,19 @@ public class UserAccountController {
                            @RequestParam BigDecimal amount,
                            Model model) {
         try {
-            var user = userService.findByUsername(userDetails.getUsername());
-            var account = accountService.findByUserId(user.id());
+            var account = loadUserAccount(userDetails);
             accountService.withdraw(account, amount);
-            log.info("User {} withdrew {} from account with ID {}", userDetails.getUsername(), amount, account.id());
-        } catch (AccountBlockedException | InsufficientFundsException ex) {
+        } catch (AccountBlockedException | InsufficientFundsException | IllegalArgumentException ex) {
+            var account = loadUserAccount(userDetails);
             model.addAttribute("errorMessage", ex.getMessage());
-            var user = userService.findByUsername(userDetails.getUsername());
-            var account = accountService.findByUserId(user.id());
             model.addAttribute("account", account);
-            log.error("Error during withdraw operation for user {}: {}", userDetails.getUsername(), ex.getMessage());
             return "user/account";
         }
         return "redirect:/user/account";
+    }
+
+    private AccountDTO loadUserAccount(UserDetails userDetails) {
+        var user = userService.findByUsername(userDetails.getUsername());
+        return accountService.findByUserId(user.id());
     }
 }

@@ -1,5 +1,6 @@
 package by.alex.account.service.impl;
 
+import by.alex.account.domain.Account;
 import by.alex.account.repository.AccountRepository;
 import by.alex.account.service.AccountBlockedException;
 import by.alex.account.service.AccountNotFoundException;
@@ -61,28 +62,41 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void deposit(AccountDTO accountDTO, BigDecimal amount) {
         log.debug("Depositing amount={} into accountID={}", amount, accountDTO.id());
-        var account = accountDTOMapper.convertToEntity(accountDTO);
-        if (account.getIsBlocked()) {
-            log.error("Attempt to deposit into blocked accountID={}", accountDTO.id());
-            throw new AccountBlockedException("Account is blocked");
-        }
+        validateAmount(amount);
+        var account = validateAndGetAccount(accountDTO);
+
         account.setBalance(account.getBalance().add(amount));
         accountRepository.save(account);
         log.info("Successfully deposited amount={} into accountID={}", amount, accountDTO.id());
     }
 
+    private void validateAmount(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            log.error("Invalid amount={}", amount);
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+    }
+
+    private Account validateAndGetAccount(AccountDTO accountDTO) {
+        var account = accountDTOMapper.convertToEntity(accountDTO);
+        if (account.getIsBlocked()) {
+            log.error("Attempt to operate on blocked accountID={}", accountDTO.id());
+            throw new AccountBlockedException("Account is blocked");
+        }
+        return account;
+    }
+
     @Override
     public void withdraw(AccountDTO accountDTO, BigDecimal amount) {
         log.debug("Withdrawing amount={} from accountID={}", amount, accountDTO.id());
-        var account = accountDTOMapper.convertToEntity(accountDTO);
-        if (account.getIsBlocked()) {
-            log.error("Attempt to withdraw from blocked accountID={}", accountDTO.id());
-            throw new AccountBlockedException("Account is blocked");
-        }
+        validateAmount(amount);
+        var account = validateAndGetAccount(accountDTO);
+
         if (account.getBalance().compareTo(amount) < 0) {
             log.error("Insufficient funds for withdrawal amount={} from accountID={}", amount, accountDTO.id());
             throw new InsufficientFundsException("Insufficient funds");
         }
+
         account.setBalance(account.getBalance().subtract(amount));
         accountRepository.save(account);
         log.info("Successfully withdrew amount={} from accountID={}", amount, accountDTO.id());
