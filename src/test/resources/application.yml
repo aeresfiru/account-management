@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:16:///account_test?TC_DAEMON=true
+    username: test
+    password: test
